@@ -1,94 +1,60 @@
 pipeline {
     agent any
 
-    environment {
-        MAVEN_CONTAINER = 'maven'
-        LICENSE_CONTAINER = 'licensefinder'
-    }
-
     stages {
 
         stage('Checkout') {
             steps {
+                echo '📦 Checking out source code...'
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Application') {
             steps {
-                container("${MAVEN_CONTAINER}") {
-                    sh 'mvn clean install -DskipTests'
-                }
+                echo '🏗️ Building the Java application...'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('StaticAnalysis') {
-            parallel {
-
-                stage('SCA') {
-                    steps {
-                        container("${MAVEN_CONTAINER}") {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                sh 'mvn org.owasp:dependency-check-maven:check'
-                            }
-                        }
-                    }
-                    post {
-                        always {
-                            archiveArtifacts allowEmptyArchive: true,
-                                             artifacts: 'target/dependency-check-report.html',
-                                             fingerprint: true,
-                                             onlyIfSuccessful: true
-                        }
-                    }
-                }
-
-                stage('OSSLicenseChecker') {
-                    steps {
-                        container("${LICENSE_CONTAINER}") {
-                            // Optional: List directory to verify
-                            sh 'ls -al'
-                            // Install license_finder and run
-                            sh '''
-                            #!/bin/bash --login
-                            gem install license_finder
-                            license_finder
-                            '''
-                        }
-                    }
-                }
-
-            } // end parallel
-        }
-
-        stage('UnitTests') {
+        stage('SCA - Dependency Check') {
             steps {
-                container("${MAVEN_CONTAINER}") {
-                    sh 'mvn test'
-                }
+                echo '🔍 Running OWASP Dependency Check...'
+                sh '''
+                docker run --rm \
+                  -v "$PWD:/src" \
+                  owasp/dependency-check:latest \
+                  --scan /src \
+                  --format "HTML" \
+                  --project "demo" \
+                  --out /src/reports
+                '''
             }
         }
 
-        stage('Package') {
+        stage('SAST - ShiftLeft Scan') {
             steps {
-                container("${MAVEN_CONTAINER}") {
-                    sh 'mvn package'
-                }
+                echo '🧠 Running Static Application Security Testing (SAST)...'
+                sh '''
+                docker run --rm \
+                  -v "$PWD:/app" \
+                  shiftleft/sast-scan:v2.1.2 \
+                  scan --type java --src /app --out_dir /app/reports
+                '''
             }
         }
 
-    } // end stages
-
-    post {
-        always {
-            echo 'Pipeline finished.'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed.'
+        stage('Archive Reports') {
+            steps {
+                echo '📄 Archiving security scan reports...'
+                archiveArtifacts artifacts: 'reports/*.html', fingerprint: true
+            }
         }
     }
 
+    post {
+        always {
+            echo '✅ Pipeline completed (with or without vulnerabilities).'
+        }
+    }
 }
