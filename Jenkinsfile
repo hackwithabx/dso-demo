@@ -46,9 +46,6 @@ pipeline {
             }
         }
 
-        // ----------------------
-        // 🚀 LAB 6 — SAST STAGE
-        // ----------------------
         stage('SAST') {
             steps {
                 container('slscan') {
@@ -68,8 +65,7 @@ pipeline {
             steps {
                 container('kubectl') {
                     sh '''
-                        # Example: Upload BOM if you already generate it in your build
-                        echo "Dependency Track stage (optional based on lab)"
+                        echo "Dependency Track stage (optional)"
                     '''
                 }
             }
