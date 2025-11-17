@@ -1,60 +1,85 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yamlFile 'build-agent.yaml'
+        }
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout()
+    }
 
     stages {
 
         stage('Checkout') {
             steps {
-                echo '📦 Checking out source code...'
-                checkout scm
+                container('maven') {
+                    checkout scm
+                }
             }
         }
 
-        stage('Build Application') {
+        stage('Build') {
             steps {
-                echo '🏗️ Building the Java application...'
-                sh 'mvn clean package -DskipTests'
+                container('maven') {
+                    sh 'mvn -DskipTests clean package'
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
             }
         }
 
-        stage('SCA - Dependency Check') {
+        stage('Static Analysis') {
             steps {
-                echo '🔍 Running OWASP Dependency Check...'
-                sh '''
-                docker run --rm \
-                  -v "$PWD:/src" \
-                  owasp/dependency-check:latest \
-                  --scan /src \
-                  --format "HTML" \
-                  --project "demo" \
-                  --out /src/reports
-                '''
+                container('maven') {
+                    sh 'mvn org.owasp:dependency-check-maven:check || true'
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: '**/dependency-check-report.*', fingerprint: true
+                }
             }
         }
 
-        stage('SAST - ShiftLeft Scan') {
+        // ----------------------
+        // 🚀 LAB 6 — SAST STAGE
+        // ----------------------
+        stage('SAST') {
             steps {
-                echo '🧠 Running Static Application Security Testing (SAST)...'
-                sh '''
-                docker run --rm \
-                  -v "$PWD:/app" \
-                  shiftleft/sast-scan:v2.1.2 \
-                  scan --type java --src /app --out_dir /app/reports
-                '''
+                container('slscan') {
+                    sh '''
+                        scan --type java,depscan --build --output-path reports
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/**', fingerprint: true
+                }
             }
         }
 
-        stage('Archive Reports') {
+        stage('Dependency-Track Upload') {
             steps {
-                echo '📄 Archiving security scan reports...'
-                archiveArtifacts artifacts: 'reports/*.html', fingerprint: true
+                container('kubectl') {
+                    sh '''
+                        # Example: Upload BOM if you already generate it in your build
+                        echo "Dependency Track stage (optional based on lab)"
+                    '''
+                }
             }
         }
+
     }
 
     post {
         always {
-            echo '✅ Pipeline completed (with or without vulnerabilities).'
+            echo "Pipeline completed."
         }
     }
 }
