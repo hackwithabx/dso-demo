@@ -25,38 +25,53 @@ pipeline {
                     sh 'mvn -DskipTests clean package'
                 }
             }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: true
+                }
+            }
         }
 
-        stage('Static Analysis') {
+        stage('Static Analysis (SCA)') {
             steps {
-                // We describe that Dependency-Check is configured in pom / locally,
-                // but we are not running it in this constrained Jenkins environment.
-                echo "Static Analysis (Dependency-Check) conceptually configured and run locally."
-                echo "Skipped in Jenkins due to NVD API / heap limitations in lab environment."
+                container('maven') {
+                    echo "Static Analysis (Dependency-Check) is configured in pom.xml"
+                    echo "But skipped in Jenkins due to NVD API + Java Heap limitations in this lab."
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
+                }
             }
         }
 
         stage('SAST') {
             steps {
-                // SAST with SCAN (slscan) - we document the real command used manually
                 container('slscan') {
+                    // Just print how SAST is run, no tricky quotes
                     sh '''
-                        echo "SAST with SCAN (slscan) is configured in this stage."
-                        echo "In this lab environment, the actual scan was executed manually via Docker:"
-                        echo "  docker run --rm -e WORKSPACE=${PWD} -v $PWD:/app \\"
-                        echo "    shiftleft/sast-scan:v2.1.2 scan --type java,depscan --build"
+                        echo SAST with SCAN slscan is configured in this stage.
+                        echo In this lab environment, the actual scan was executed manually via Docker:
+                        echo docker run --rm -e WORKSPACE=${PWD} -v $PWD:/app shiftleft/sast-scan:v2.1.2 scan --type java,depscan --build
                     '''
+                }
+            }
+            post {
+                always {
+                    // OK if reports/ does not exist
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/**', fingerprint: true
                 }
             }
         }
 
         stage('Dependency-Track Upload') {
             steps {
-                // Simplified to a placeholder echo to avoid kubectl pod issues
-                echo "Dependency-Track upload stage (optional) - not executed in this lab run."
+                container('kubectl') {
+                    echo "Dependency-Track stage placeholder (optional)"
+                }
             }
         }
-
     }
 
     post {
