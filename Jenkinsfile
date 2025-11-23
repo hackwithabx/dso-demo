@@ -50,6 +50,7 @@ pipeline {
         stage('SAST') {
             steps {
                 container('slscan') {
+                    // Run SAST with SCAN (no --output-path)
                     sh 'scan --type java,depscan --build'
                 }
             }
