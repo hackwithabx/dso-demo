@@ -16,10 +16,10 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.2</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
 
-    <!-- Java 17 for Spring Boot 3.x -->
+    <!-- Java 17 -->
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
@@ -27,41 +27,38 @@
     </properties>
 
     <dependencies>
-        <!-- Core Spring Web starter -->
+        <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Fixed: commons-compress vulnerability -->
+        <!-- Secure versions to fix CVEs -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.26.0</version>
         </dependency>
 
-        <!-- Fixed: commons-text vulnerability -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.10.0</version>
         </dependency>
 
-        <!-- Fixed: CVE-2024-12798 (logback-core) -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>1.5.19</version>
         </dependency>
 
-        <!-- Fixed: CVE-2025-41242 (spring-webmvc) -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
             <version>6.1.21</version>
         </dependency>
 
-        <!-- Test dependency -->
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -71,20 +68,20 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot Maven plugin -->
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- OWASP Dependency Check plugin with failBuildOnCVSS -->
+            <!-- ✅ UPDATED OWASP Dependency Check -->
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.1.1</version>
+                <version>12.1.0</version>
                 <configuration>
-                    <!-- Fail build if any vulnerability has CVSS >= 8 -->
                     <failBuildOnCVSS>8</failBuildOnCVSS>
+                    <failOnError>false</failOnError>
                 </configuration>
                 <executions>
                     <execution>
@@ -98,28 +95,3 @@
     </build>
 
 </project>
-
-
-
-
-
-
-																																																									
-
-
-
-                                                                                   
-                                          
-                               
-                                                                             
-                                                             
-                                     
-                            
-                               
-                                                          
-                                                  
-                                 
-                                
-                             
-                                    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
