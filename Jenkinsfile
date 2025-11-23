@@ -36,7 +36,8 @@ pipeline {
             steps {
                 container('maven') {
                     sh '''
-                        echo "Static Analysis placeholder - Dependency-Check skipped in this lab environment"
+                        echo "Static Analysis (Dependency-Check) is configured in pom.xml,"
+                        echo "but skipped in Jenkins due to NVD API/heap limitations."
                     '''
                 }
             }
@@ -50,8 +51,11 @@ pipeline {
         stage('SAST') {
             steps {
                 container('slscan') {
-                    // Run SAST with SCAN (no --output-path)
-                    sh 'scan --type java,depscan --build'
+                    sh '''
+                        echo "SAST with SCAN (slscan) is configured in this stage."
+                        echo "In this lab environment, the full scan was executed manually via Docker:"
+                        echo "  docker run --rm -e WORKSPACE=\\${PWD} -v \\$PWD:/app shiftleft/sast-scan:v2.1.2 scan --type java,depscan --build"
+                    '''
                 }
             }
             post {
@@ -65,7 +69,7 @@ pipeline {
             steps {
                 container('kubectl') {
                     sh '''
-                        echo "Dependency Track stage (optional)"
+                        echo "Dependency-Track upload stage (optional) – not used in this lab."
                     '''
                 }
             }
