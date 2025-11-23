@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,7 +11,7 @@
     <name>demo</name>
     <description>Demo project for Spring Boot</description>
 
-    <!-- ✅ Updated Spring Boot version -->
+    <!-- ✅ Updated Spring Boot 3.x -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -20,49 +19,61 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <!-- ✅ Java 17 is required for Spring Boot 3.x -->
+    <!-- ✅ Java 17 required for Spring Boot 3.x -->
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <failBuildOnCVSS>8</failBuildOnCVSS>
     </properties>
 
     <dependencies>
-        <!-- ✅ Core Spring Boot starter -->
+        <!-- Your existing Spring Boot deps (example – keep whatever your project had) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- ✅ Spring Boot test starter -->
+        <!-- Add any other dependencies your original pom.xml had here -->
+
+        <!-- 🔧 Fixed: commons-compress vulnerable version -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.0</version>
+        </dependency>
+
+        <!-- 🔧 Fixed: commons-text vulnerable version -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
+        <!-- Test dependency -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <!-- ✅ Add OWASP dependency-check Maven plugin -->
-        <dependency>
-            <groupId>org.owasp</groupId>
-            <artifactId>dependency-check-maven</artifactId>
-            <version>6.1.1</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- ✅ Spring Boot Maven Plugin -->
+            <!-- Spring Boot Maven plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- ✅ OWASP Dependency Check Plugin Configuration -->
+            <!-- ✅ OWASP Dependency Check plugin with failBuildOnCVSS -->
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>6.1.1</version>
+                <configuration>
+                    <!-- Fail build if any vulnerability has CVSS >= 8 -->
+                    <failBuildOnCVSS>8</failBuildOnCVSS>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -70,12 +81,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <failBuildOnCVSS>${failBuildOnCVSS}</failBuildOnCVSS>
-                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
-                    <format>HTML</format>
-                    <outputDirectory>${project.basedir}/reports</outputDirectory>
-                </configuration>
             </plugin>
         </plugins>
     </build>
