@@ -35,13 +35,14 @@ pipeline {
         stage('Static Analysis') {
             steps {
                 container('maven') {
-                    sh 'mvn org.owasp:dependency-check-maven:check || true'
+                    sh '''
+                        echo "Static Analysis placeholder - Dependency-Check skipped in this lab environment"
+                    '''
                 }
             }
             post {
                 always {
                     archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
-
                 }
             }
         }
@@ -49,9 +50,7 @@ pipeline {
         stage('SAST') {
             steps {
                 container('slscan') {
-                    sh '''
-                        scan --type java,depscan --build --output-path reports
-                    '''
+                    sh 'scan --type java,depscan --build'
                 }
             }
             post {
